@@ -1,0 +1,14 @@
+Diskretspace is written in C and Assembly and compiled by GCC 6.3.0.
+
+External libraries include:
+Vulkan 1.0.49
+SDL 2.0.5
+FreeType 2.8
+
+It runs natively on the Linux kernel and supports the Xlib, Wayland, and Mir window managers.
+Windows is supported, although lacks the degree of optimization on Linux. However, this shouldn't be very noticeable with a decent GPU. 
+Mac is not and never will be supported.
+
+It was designed and tested on an Nvidia GTX 1070. Thus, performance hits and strange behaviors are to be expected outside of the vulkan-compatible nvidia lines.
+
+Basic shell knowledge is useful.

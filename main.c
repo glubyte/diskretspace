@@ -14,6 +14,7 @@ int main(void)
 {
 	// stacking
 	unsigned char flag = 1;
+	float solution;
 	fps_shit fpsshit;
 	sdl_shit sdlshit;
 	vk_shit vkshit;
@@ -35,7 +36,9 @@ int main(void)
 	while(flag)
 	{
 		// FPS handler
-		calculateFPS(&fpsshit);
+		// calculateFPS(&fpsshit);
+
+		solution = solveFirstOrderEquation();
 
 		// event handler (put in own function)
 		while (SDL_PollEvent(&sdlshit.event))
@@ -74,7 +77,7 @@ int main(void)
 		}
 		// more shit
 		// SDL_Delay(16);
-		++fpsshit.frames;
+		// ++fpsshit.frames;
 	}
 
 	// clean up

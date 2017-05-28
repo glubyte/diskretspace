@@ -18,12 +18,12 @@ LINKER_FLAGS = -lmingw32 -lSDL2main -lSDL2 -lvulkan-1
 
 OBJ_NAME = diskretspace
 
-objects = main.o vk.o sdl.o planets.o stars.o maths.o gen.o camera.o
+objects = main.o vk.o sdl.o planets.o stars.o maths.o gen.o camera.o fps.o
 
 all : $(objects)
 	gcc $(objects) $(OBJ_NAME).res $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LINKER_FLAGS) -o winbuild\$(OBJ_NAME)
 
-main.o : vk.h sdl.h planets.h gen.h
+main.o : vk.h sdl.h planets.h gen.h fps.h
 	gcc -c main.c $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LINKER_FLAGS) 
 
 vk.o : vk.h
@@ -46,6 +46,8 @@ gen.o : gen.h maths.h
 
 camera.o : camera.h maths.h
 	gcc -c camera.c $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LINKER_FLAGS)
+fps.o : fps.h
+	gcc -c fps.c $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LINKER_FLAGS)
 
 clean :
 	rm $(objects)

@@ -8,14 +8,13 @@
 #include "sdl.h"
 #include "planets.h"
 #include "gen.h"
+#include "fps.h"
 
 int main(void)
 {
 	// stacking
 	unsigned char flag = 1;
-	uint32_t timer = 0;
-	uint32_t dt;
-	uint32_t frames = 0;
+	fps_shit fpsshit;
 	sdl_shit sdlshit;
 	vk_shit vkshit;
 	// init
@@ -27,19 +26,17 @@ int main(void)
 		getchar();
 		return 0;
 	}
-	printf("Initialization successful.\n");
+	printf("SDL successfully initialized.\n");
+	initFPS(&fpsshit);
+	printf("FPS module successfully initialized.\n");
+	printf("Initialization complete.\n");
 
 	// main loop
 	while(flag)
 	{
 		// FPS handler
-		dt = SDL_GetTicks() - timer;
-		if (dt > 1000)
-		{
-			printf("FPS: %i\n", 1000 * frames / dt);
-			frames = 0;
-			timer = SDL_GetTicks();
-		}
+		calculateFPS(&fpsshit);
+
 		// event handler (put in own function)
 		while (SDL_PollEvent(&sdlshit.event))
 		{
@@ -77,7 +74,7 @@ int main(void)
 		}
 		// more shit
 		// SDL_Delay(16);
-		++frames;
+		++fpsshit.frames;
 	}
 
 	// clean up

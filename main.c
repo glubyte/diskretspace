@@ -49,7 +49,7 @@ int main(void)
 				switch (sdlshit.event.window.event)
 				{
 				case SDL_WINDOWEVENT_RESIZED:
-					resizeWindow(&sdlshit);
+					resizeWindow(&vkshit, &sdlshit);
 					printf("%i %i\n", sdlshit.width, sdlshit.height);
 					break;
 				case SDL_WINDOWEVENT_CLOSE:

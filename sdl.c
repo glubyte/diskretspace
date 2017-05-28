@@ -62,10 +62,6 @@ bool createWindow(sdl_shit* sdlshit)
 	printf("Could not retrieve window manager information: %s", SDL_GetError());
 	return 1;
 }
-void resizeWindow(sdl_shit* sdlshit)
-{
-	SDL_GetWindowSize(sdlshit->window, &sdlshit->width, &sdlshit->height);
-}
 void cleanSDL(sdl_shit* sdlshit)
 {
 	SDL_DestroyWindow(sdlshit->window);

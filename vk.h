@@ -21,8 +21,11 @@ typedef struct {
 	uint32_t queueFamilyIndex;
 	VkDevice device;
 	VkQueue queue;
+	uint32_t imageCount;
+	VkFormat imageFormat;
 	VkSwapchainKHR swapChain;
 	VkImage* images;
+	VkImageView* imageViews;
 } vk_shit;
 
 // prototypes
@@ -31,7 +34,8 @@ bool createInstance(vk_shit* vkshit);
 bool createSurface(vk_shit* vkshit, sdl_shit* sdlshit);
 bool createPhysicalDevice(vk_shit* vkshit);
 bool createDevice(vk_shit* vkshit);
-bool createSwapChain(vk_shit* vkshit);
+bool createSwapChain(vk_shit* vkshit, sdl_shit* sdlshit);
+bool createImageViews(vk_shit* vkshit);
 bool assessError(VkResult result);
-void resizeWindow(sdl_shit* sdlshit);
+bool resizeWindow(vk_shit* vkshit, sdl_shit* sdlshit);
 void cleanVk(vk_shit* vkshit);

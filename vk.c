@@ -19,9 +19,13 @@ bool initVk(vk_shit* vkshit, sdl_shit* sdlshit)
 		return 1;
 	printf("Logical device created.\n");
 	printf("Creating swap chain...\n");
-	if (createSwapChain(vkshit))
+	if (createSwapChain(vkshit, sdlshit))
 		return 1;
 	printf("Swap chain created.\n");
+	printf("Creating image views...\n");
+	if (createImageViews(vkshit))
+		return 1;
+	printf("Image views created.\n");
 
 	return 0;
 }
@@ -236,7 +240,7 @@ bool createDevice(vk_shit* vkshit)
 
 	return 0;
 }
-bool createSwapChain(vk_shit* vkshit)
+bool createSwapChain(vk_shit* vkshit, sdl_shit* sdlshit)
 {
 	VkSwapchainCreateInfoKHR swapchainInfo;
 	VkSurfaceCapabilitiesKHR capabilities;
@@ -256,7 +260,7 @@ bool createSwapChain(vk_shit* vkshit)
 		if (formatCount == 1 && formats[0].format == VK_FORMAT_UNDEFINED)
 		{
 			printf("Ideal surface format and color space selected.\n");
-			swapchainInfo.imageFormat = VK_FORMAT_B8G8R8A8_UNORM;
+			vkshit->imageFormat = VK_FORMAT_B8G8R8A8_UNORM;
 			swapchainInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 		}
 		else
@@ -266,7 +270,7 @@ bool createSwapChain(vk_shit* vkshit)
 				if (formats[i].format == VK_FORMAT_B8G8R8A8_UNORM && formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
 				{
 					printf("Ideal surface format and color space selected.\n");
-					swapchainInfo.imageFormat = VK_FORMAT_B8G8R8A8_UNORM;
+					vkshit->imageFormat = VK_FORMAT_B8G8R8A8_UNORM;
 					swapchainInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 					i = 0;
 					break;
@@ -275,7 +279,7 @@ bool createSwapChain(vk_shit* vkshit)
 			if (i)
 			{
 				printf("Could not locate ideal surface format and color space. Settling with sub-optimal specifications.\n");
-				swapchainInfo.imageFormat = formats[0].format;
+				vkshit->imageFormat = formats[0].format;
 				swapchainInfo.imageColorSpace = formats[0].colorSpace;
 			}
 		}
@@ -321,12 +325,23 @@ bool createSwapChain(vk_shit* vkshit)
 		return 0;
 	}
 
+	// handle swap chain length
+	vkshit->imageCount = capabilities.minImageCount + 1;
+	if (capabilities.maxImageCount > 0 && vkshit->imageCount > capabilities.maxImageCount)
+	{
+		vkshit->imageCount = capabilities.maxImageCount;
+	}
+
+	// assign image extent
+	VkExtent2D extent = { sdlshit->width, sdlshit->height };
+
 	swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	swapchainInfo.pNext = NULL;
 	swapchainInfo.flags = 0;
 	swapchainInfo.surface = vkshit->surface;
-	swapchainInfo.minImageCount;
-	swapchainInfo.imageExtent;
+	swapchainInfo.minImageCount = vkshit->imageCount;
+	swapchainInfo.imageFormat = vkshit->imageFormat;
+	swapchainInfo.imageExtent = extent;
 	swapchainInfo.imageArrayLayers = 1;
 	swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 	swapchainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -335,12 +350,50 @@ bool createSwapChain(vk_shit* vkshit)
 	swapchainInfo.preTransform = capabilities.currentTransform;
 	swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 	swapchainInfo.clipped = VK_TRUE;
-	swapchainInfo.oldSwapchain;
+	swapchainInfo.oldSwapchain = NULL;
 
 	if (assessError(vkCreateSwapchainKHR(vkshit->device, &swapchainInfo, NULL, &vkshit->swapChain)))
 	{
 		printf("Failed to create swap chain.\n");
 		return 1;
+	}
+
+	// get swap chain image handles
+	vkGetSwapchainImagesKHR(vkshit->device, vkshit->swapChain, &vkshit->imageCount, NULL);
+	vkshit->images = malloc(sizeof(VkImage) * vkshit->imageCount);
+	vkGetSwapchainImagesKHR(vkshit->device, vkshit->swapChain, &vkshit->imageCount, vkshit->images);
+
+	return 0;
+}
+bool createImageViews(vk_shit* vkshit)
+{
+	vkshit->imageViews = malloc(sizeof(VkImageView) * vkshit->imageCount);
+
+	VkImageViewCreateInfo imageViewInfo;
+	imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	imageViewInfo.pNext = NULL;
+	imageViewInfo.flags = 0;
+	imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	imageViewInfo.format = vkshit->imageFormat;
+	imageViewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+	imageViewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+	imageViewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+	imageViewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+	imageViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	imageViewInfo.subresourceRange.baseMipLevel = 0;
+	imageViewInfo.subresourceRange.levelCount = 1;
+	imageViewInfo.subresourceRange.baseArrayLayer = 0;
+	imageViewInfo.subresourceRange.layerCount = 1;
+
+	for (unsigned char i = 0; i < vkshit->imageCount; i++)
+	{
+		imageViewInfo.image = vkshit->images[i];
+
+		if (assessError(vkCreateImageView(vkshit->device, &imageViewInfo, NULL, &vkshit->imageViews[i])))
+		{
+			printf("Failed to create image views.\n");
+			return 1;
+		}
 	}
 
 	return 0;
@@ -356,12 +409,74 @@ bool assessError(VkResult result)
 		return 1;
 	}
 }
+bool resizeWindow(vk_shit* vkshit, sdl_shit* sdlshit)
+{
+	unsigned char i;
+
+	printf("Resizing window...\n");
+
+	// wait for idle
+	vkDeviceWaitIdle(vkshit->device);
+
+	// acquire new dimensions
+	SDL_GetWindowSize(sdlshit->window, &sdlshit->width, &sdlshit->height);
+	// clean dependent variables
+	printf("Cleaning up resources...\n");
+	printf("Destroying image views...\n");
+	for (i = 0; i < vkshit->imageCount; i++)
+	{
+		vkDestroyImageView(vkshit->device, vkshit->imageViews[i], NULL);
+	}
+	free(vkshit->imageViews);
+	vkshit->imageViews = NULL;
+	printf("Image views destroyed.\n");
+	printf("Destroying swap chain...\n");
+	vkDestroySwapchainKHR(vkshit->device, vkshit->swapChain, NULL); // implicitly destroys VkImage
+	free(vkshit->images); // memory is still allocated, needs to be freed
+	vkshit->images = NULL;
+	printf("Swap chain destroyed.\n");
+	printf("Clean up complete.\n");
+	// assign dependent variables
+	printf("Generating new resources...\n");
+	printf("Creating swap chain...\n");
+	if (createSwapChain(vkshit, sdlshit))
+		return 1;
+	printf("Swap chain created.\n");
+	printf("Creating image views...\n");
+	if (createImageViews(vkshit))
+		return 1;
+	printf("Image views created.\n");
+	printf("Window resize complete.\n");
+
+	return 0;
+}
 void cleanVk(vk_shit* vkshit)
 {
+	unsigned char i;
+
+	printf("Cleaning up Vulkan...\n");
+	printf("Destroying image views...\n");
+	for (i = 0; i < vkshit->imageCount; i++)
+	{
+		vkDestroyImageView(vkshit->device, vkshit->imageViews[i], NULL);
+	}
+	free(vkshit->imageViews);
+	vkshit->imageViews = NULL;
+	printf("Image views destroyed.\n");
+	printf("Destroying swap chain...\n");
 	vkDestroySwapchainKHR(vkshit->device, vkshit->swapChain, NULL); // implicitly destroys VkImage
+	printf("Swap chain destroyed.\n");
+	free(vkshit->images); // memory is still allocated, needs to be freed
+	vkshit->images = NULL;
+	printf("Destroying device...\n");
 	vkDestroyDevice(vkshit->device, NULL);  // implicitly destroys VkQueue
+	printf("Device destroyed.\n");
+	printf("Destroying surface...\n");
 	vkDestroySurfaceKHR(vkshit->instance, vkshit->surface, NULL);
+	printf("Surface destroyed.\n");
+	printf("Destroying instance...\n");
 	vkDestroyInstance(vkshit->instance, NULL); // implicitly destroys VkPhysicalDevice
+	printf("Instance destroyed.\n");
 
 	printf("Vulkan clean up successful.\n");
 }

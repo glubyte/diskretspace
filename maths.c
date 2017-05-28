@@ -71,14 +71,30 @@ bool formatChecker(char* equation)
 }
 float solveFirstOrderEquation()
 {
-	uint32_t operations;
+	uint32_t operations = 0;
 	time_t start;
 	time_t finish;
-	char equation[256];
+	char equation[256], buffer[256];
+	char *lpole, *rpole;
+	int i = 0, j = 0;
 
 	printf("Enter a first order equation: \n");
 	// acquire equation
-	fgets(equation, sizeof(equation), stdin);
+	fgets(buffer, sizeof(buffer), stdin);
+	// compressor
+	while (buffer[i])
+	{
+		if (isspace(buffer[i]))
+		{
+			i++;
+			continue;
+		}
+		equation[j] = buffer[i];
+		i++;
+		j++;
+	}
+	printf("Read:\n%s\n", equation);
+	
 	// check format
 	if (!formatChecker(equation))
 	{
@@ -86,6 +102,10 @@ float solveFirstOrderEquation()
 	}
 	// begin solution
 	time(&start);
+	// resolve poles and determine polarity
+	rpole = strchr(equation, '=') + 1;
+
+	printf("Left pole: %s\n", lpole);
 
 	time(&finish);
 	printf("Solved in %i seconds over %i operations.\n", difftime(finish, start), operations);

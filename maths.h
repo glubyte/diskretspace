@@ -8,11 +8,37 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
+#include <stdlib.h>
 
 // stack handles
+typedef enum {
+	TOKEN_TYPE_BINARY_OPERATOR = 0,
+	TOKEN_TYPE_UNARY_OPERATOR = 1,
+	TOKEN_TYPE_OPERAND = 2,
+	TOKEN_TYPE_PARENTHESIS = 3
+} tokenType;
+
+typedef enum {
+	NODE_TYPE_LEAF = 0,
+	NODE_TYPE_INTERNAL = 1,
+	NODE_TYPE_ROOT = 2
+} nodeType;
+
 typedef struct {
 	float i, j, k;
 } vec3;
+
+typedef struct {
+	tokenType type;
+	char data[16]; //ideally void* to handle all data types
+} token;
+
+typedef struct tree {
+	nodeType type;
+	char data[16];
+	struct tree* left;
+	struct tree* right;
+} node;
 
 // prototypes
 // linear algebra
@@ -22,3 +48,7 @@ float length(vec3 a);
 void normalize(vec3* a);
 
 // ai math
+char* mathLex(char* expression);
+token* genTokens(char* expression);
+node* genTree(token* tokens);
+void insertNode(node* tree);

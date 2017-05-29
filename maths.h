@@ -22,5 +22,3 @@ float length(vec3 a);
 void normalize(vec3* a);
 
 // ai math
-bool formatChecker(char* equation);
-float solveFirstOrderEquation();

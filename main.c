@@ -36,9 +36,7 @@ int main(void)
 	while(flag)
 	{
 		// FPS handler
-		// calculateFPS(&fpsshit);
-
-		solution = solveFirstOrderEquation();
+		calculateFPS(&fpsshit);
 
 		// event handler (put in own function)
 		while (SDL_PollEvent(&sdlshit.event))
@@ -77,7 +75,7 @@ int main(void)
 		}
 		// more shit
 		// SDL_Delay(16);
-		// ++fpsshit.frames;
+		++fpsshit.frames;
 	}
 
 	// clean up

@@ -41,20 +41,6 @@ bool formatChecker(char* equation)
 		{
 			if (isalpha(equation[i]))
 			{
-				variable = equation[i];
-				// ensure first order
-				while (equation[i])
-				{
-					if (isalpha(equation[i]))
-					{
-						if (variable != equation[i])
-						{
-							printf("That is not a first order equation.\n");
-							return 0;
-						}
-					}
-					i++;
-				}
 				printf("Format verified.\n");
 				return 1;
 			}
@@ -75,7 +61,6 @@ float solveFirstOrderEquation()
 	time_t start;
 	time_t finish;
 	char equation[256], buffer[256];
-	char *lpole, *rpole;
 	int i = 0, j = 0;
 
 	printf("Enter a first order equation: \n");
@@ -102,10 +87,6 @@ float solveFirstOrderEquation()
 	}
 	// begin solution
 	time(&start);
-	// resolve poles and determine polarity
-	rpole = strchr(equation, '=') + 1;
-
-	printf("Left pole: %s\n", lpole);
 
 	time(&finish);
 	printf("Solved in %i seconds over %i operations.\n", difftime(finish, start), operations);

@@ -64,10 +64,11 @@ token* genTokens(char* expression)
 	{
 		tokens = (token*)realloc(tokens, sizeof(token)*(numTokens + 1));
 
-		if (isdigit(expression[i]))
+		if (isalnum(expression[i]))
 		{
 			// prepare for large numbers
 			tokens[numTokens].type = TOKEN_TYPE_OPERAND;
+			tokens[numTokens].precedence = 1;
 			tokens[numTokens].data[j] = expression[i];
 			j++;
 			i++;
@@ -81,7 +82,36 @@ token* genTokens(char* expression)
 			j = 0;
 			continue;
 		}
-		tokens[numTokens].type = TOKEN_TYPE_BINARY_OPERATOR;
+		switch (expression[i])
+		{
+			case '+':
+			case '-':
+			{
+				tokens[numTokens].type = TOKEN_TYPE_BINARY_OPERATOR;
+				tokens[numTokens].precedence = 2;
+				break;
+			}
+			case '*':
+			case '/':
+			{
+				tokens[numTokens].type = TOKEN_TYPE_BINARY_OPERATOR;
+				tokens[numTokens].precedence = 3;
+				break;
+			}
+			case '^':
+			{
+				tokens[numTokens].type = TOKEN_TYPE_BINARY_OPERATOR;
+				tokens[numTokens].precedence = 4;
+				break;
+			}
+			case '(':
+			case ')':
+			{
+				tokens[numTokens].type = TOKEN_TYPE_PARENTHESIS;
+				tokens[numTokens].precedence = 5;
+				break;
+			}
+		}
 		tokens[numTokens].data[0] = expression[i];
 		i++;
 		numTokens++;
@@ -98,50 +128,56 @@ token* genTokens(char* expression)
 }
 node* genTree(token* tokens)
 {
-	node* tree = NULL;
+	node* t1 = NULL;
+	node* t2 = NULL;
 	unsigned int nodes = 0;
 	unsigned int leaves = 0;
-	unsigned char i;
+	unsigned char i = 0;
 	time_t start;
 	time_t finish;
 
-	// the following is more cellular automata-esque than what i had imagined
+	// pretty much a cellular automata
 	time(&start);
 	while (tokens[i].data)
 	{
-		node* newNode = (node*)malloc(sizeof(node));
-		strcpy(newNode->data, tokens[i].data);
 
-		switch (tokens[i].type)
-		{
-			case TOKEN_TYPE_OPERAND:
-			{
-				newNode->type = NODE_TYPE_LEAF;
-				newNode->left = NULL;
-				newNode->right = NULL;
-				leaves++;
-				break;
-			}
-			case TOKEN_TYPE_BINARY_OPERATOR:
-			{
-				newNode->type = NODE_TYPE_INTERNAL;
-				nodes++;
-				break;
-			}
-			case TOKEN_TYPE_PARENTHESIS:
-			{
-				break;
-			}
-		}
 	}
 	time(&finish);
 
 	printf("Binary expression tree generated in %i seconds with %i leaves and %i nodes.\n", difftime(finish, start), leaves, nodes);
 	free(tokens);
 	tokens = NULL;
-	return tree;
+	// return tree;
 }
-void insertNode(node* tree)
+node* genNode(token token)
+{
+	node* newNode = (node*)malloc(sizeof(node));
+	strcpy(newNode->data, token.data);
+
+	switch (token.type)
+	{
+		case TOKEN_TYPE_OPERAND:
+		{
+			newNode->type = NODE_TYPE_LEAF;
+			newNode->left = NULL;
+			newNode->right = NULL;
+			break;
+		}
+		case TOKEN_TYPE_BINARY_OPERATOR:
+		{
+			newNode->type = NODE_TYPE_INTERNAL;
+			break;
+		}
+		case TOKEN_TYPE_UNARY_OPERATOR:
+		{
+			newNode->type = NODE_TYPE_INTERNAL;
+			break;
+		}
+	}
+
+	return newNode;
+}
+void deleteNode(node* node)
 {
 
 }

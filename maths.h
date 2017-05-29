@@ -12,9 +12,9 @@
 
 // stack handles
 typedef enum {
-	TOKEN_TYPE_BINARY_OPERATOR = 0,
-	TOKEN_TYPE_UNARY_OPERATOR = 1,
-	TOKEN_TYPE_OPERAND = 2,
+	TOKEN_TYPE_OPERAND = 0,
+	TOKEN_TYPE_BINARY_OPERATOR = 1,
+	TOKEN_TYPE_UNARY_OPERATOR = 2,
 	TOKEN_TYPE_PARENTHESIS = 3
 } tokenType;
 
@@ -30,7 +30,8 @@ typedef struct {
 
 typedef struct {
 	tokenType type;
-	char data[16]; //ideally void* to handle all data types
+	char data[16]; // ideally void* to handle all data types
+	unsigned char precedence;
 } token;
 
 typedef struct tree {
@@ -51,4 +52,5 @@ void normalize(vec3* a);
 char* mathLex(char* expression);
 token* genTokens(char* expression);
 node* genTree(token* tokens);
-void insertNode(node* tree);
+node* genNode(token token);
+void deleteNode(node* node);

@@ -15,7 +15,8 @@ typedef enum {
 	TOKEN_TYPE_OPERAND = 0,
 	TOKEN_TYPE_BINARY_OPERATOR = 1,
 	TOKEN_TYPE_UNARY_OPERATOR = 2,
-	TOKEN_TYPE_PARENTHESIS = 3
+	TOKEN_TYPE_PARENTHESIS = 3,
+	TOKEN_TYPE_EQUALITY = 4
 } tokenType;
 
 typedef enum {
@@ -23,10 +24,6 @@ typedef enum {
 	NODE_TYPE_INTERNAL = 1,
 	NODE_TYPE_ROOT = 2
 } nodeType;
-
-typedef struct {
-	float i, j, k;
-} vec3;
 
 typedef struct {
 	tokenType type;
@@ -40,6 +37,10 @@ typedef struct tree {
 	struct tree* left;
 	struct tree* right;
 } node;
+
+typedef struct {
+	float i, j, k;
+} vec3;
 
 // prototypes
 // linear algebra

@@ -55,11 +55,10 @@ token* genTokens(char* expression)
 {
 	token* tokens = NULL;
 	uint32_t numTokens = 0;
-	time_t start;
-	time_t finish;
+	clock_t time;
 	unsigned int i = 0, j = 0;
 
-	time(&start);
+	time = clock();
 	while (expression[i])
 	{
 		tokens = (token*)realloc(tokens, sizeof(token)*(numTokens + 1));
@@ -111,13 +110,18 @@ token* genTokens(char* expression)
 				tokens[numTokens].precedence = 5;
 				break;
 			}
+			case '=':
+			{
+				tokens[numTokens].type = TOKEN_TYPE_EQUALITY;
+				tokens[numTokens].precedence = 6;
+			}
 		}
 		tokens[numTokens].data[0] = expression[i];
 		i++;
 		numTokens++;
 	}
-	time(&finish);
-	printf("Tokens resolved: %i\nDuration: %i s\n", numTokens, difftime(finish, start));
+	time = clock() - time;
+	printf("%i tokens resolved in %f seconds.\n", numTokens, (float)time / CLOCKS_PER_SEC);
 	for (i = 0; i < numTokens; i++)
 	{
 		printf("%s\n", tokens[i].data);
@@ -133,18 +137,17 @@ node* genTree(token* tokens)
 	unsigned int nodes = 0;
 	unsigned int leaves = 0;
 	unsigned char i = 0;
-	time_t start;
-	time_t finish;
+	clock_t time;
 
 	// pretty much a cellular automata
-	time(&start);
+	time = clock();
 	while (tokens[i].data)
 	{
 
 	}
-	time(&finish);
+	time = clock() - time;
 
-	printf("Binary expression tree generated in %i seconds with %i leaves and %i nodes.\n", difftime(finish, start), leaves, nodes);
+	printf("Binary expression tree generated in %f seconds with %i leaves and %i nodes.\n", (float)time / CLOCKS_PER_SEC, leaves, nodes);
 	free(tokens);
 	tokens = NULL;
 	// return tree;

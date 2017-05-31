@@ -14,7 +14,7 @@ int main(void)
 {
 	// stacking
 	unsigned char flag = 1;
-	char expression[256];
+	char* expression = (char*)malloc(512);
 	token* tokens;
 	fps_shit fpsshit;
 	sdl_shit sdlshit;
@@ -41,7 +41,7 @@ int main(void)
 
 		printf("Enter an expression:\n");
 		fgets(expression, sizeof(expression), stdin);
-		tokens = mathLexicon(mathClean(expression));
+		tokens = mathLexicon(expression);
 		free(tokens);
 		tokens = NULL;
 

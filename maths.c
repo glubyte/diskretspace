@@ -27,30 +27,6 @@ void normalize(vec3* a)
 	a->k = a->k / l;
 }
 
-char* mathClean(char* expression)
-{
-	unsigned int i = 0, j = 0;
-	char* buffer = NULL;
-
-	// delete white-spaces
-	while (expression[i])
-	{
-		buffer = (char*)realloc(buffer, sizeof(char)*(j + 1));
-
-		if (isspace(expression[i]))
-		{
-			i++;
-			continue;
-		}
-		buffer[j] = expression[i];
-		i++;
-		j++;
-	}
-	buffer[j] = '\0';
-
-	printf("Interpreted as: %s\n", buffer);
-	return buffer;
-}
 token* mathLexicon(char* expression)
 {
 	token* tokens = NULL;
@@ -78,6 +54,7 @@ token* mathLexicon(char* expression)
 				j++;
 				i++;
 			}
+			tokens[numTokens].data[j] = '\0';
 			numTokens++;
 			j = 0;
 			continue;
@@ -88,14 +65,29 @@ token* mathLexicon(char* expression)
 			{
 				tokens[numTokens].type = TOKEN_TYPE_NEST;
 				tokens[numTokens].precedence = 1;
-				i++;
+				int p = 1;
 
-				while (expression[i] != ')')
+				// deal with nested parenthesis
+				while (p)
 				{
-					tokens[numTokens].data[j] = expression[i];
-					j++;
 					i++;
+					j++;
+					switch (expression[i])
+					{
+						case '(':
+						{
+							p++;
+							break;
+						}
+						case ')':
+						{
+							p--;
+							break;
+						}
+					}
+					tokens[numTokens].data[j] = expression[i];
 				}
+				tokens[numTokens].data[j] = '\0';
 				j = 0;
 				break;
 			}
@@ -143,12 +135,17 @@ token* mathLexicon(char* expression)
 				tokens[numTokens].data[0] = expression[i];
 				break;
 			}
+			default:
+			{
+				i++;
+				continue;
+			}
 		}
 		i++;
 		numTokens++;
 	}
 	time = clock() - time;
-	printf("%i tokens resolved in %f seconds.\n", numTokens, (float)time / CLOCKS_PER_SEC);
+	printf("%i tokens resolved in %f seconds over %i iterations.\n", numTokens, (float)time / CLOCKS_PER_SEC, i - 1);
 	
 	for (i = 0; i < numTokens; i++)
 	{
@@ -162,7 +159,7 @@ token* mathLexicon(char* expression)
 node* genTree(token* tokens)
 {
 	node* root = NULL;
-	node* nodeBuffer = NULL;
+	node* buffer = NULL;
 	unsigned int nodes = 0, leaves = 0;
 	unsigned char i = 0;
 	clock_t time;
@@ -175,15 +172,34 @@ node* genTree(token* tokens)
 		{
 			case TOKEN_TYPE_OPERAND:
 			{
-				nodeBuffer = genNode(tokens[i]);
-				nodeBuffer->type = NODE_TYPE_LEAF;
-				nodeBuffer->left = NULL;
-				nodeBuffer->right = NULL;
-				break;
+				node* buffer = genNode(tokens[i]);
+				buffer->type = NODE_TYPE_LEAF;
+				buffer->left = NULL;
+				buffer->right = NULL;
+
+				if (root == NULL)
+				{
+					root = buffer;
+					break;
+				}
+
+			}
+			case TOKEN_TYPE_NEST:
+			{
+				// insert this in same manner as operand
+				genTree(mathLexicon(tokens[i].data));
 			}
 			case TOKEN_TYPE_BINARY_OPERATOR:
 			{
 
+			}
+			case TOKEN_TYPE_UNARY_OPERATOR:
+			{
+
+			}
+			case TOKEN_TYPE_EQUALITY:
+			{
+				// assign as root and build the right side of the tree in the same way. attach to the right of equality when finished
 			}
 		}
 	}

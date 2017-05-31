@@ -51,7 +51,6 @@ float length(vec3 a);
 void normalize(vec3* a);
 
 // symbolic computation
-char* mathClean(char* expression);
 token* mathLexicon(char* expression);
 node* genTree(token* tokens);
 node* genNode(token token);

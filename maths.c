@@ -88,6 +88,7 @@ token* genTokens(char* expression)
 			{
 				tokens[numTokens].type = TOKEN_TYPE_PARENTHESIS;
 				tokens[numTokens].precedence = 0;
+				break;
 			}
 			case '+':
 			case '-':

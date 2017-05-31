@@ -42,6 +42,8 @@ int main(void)
 		printf("Enter an expression:\n");
 		fgets(expression, sizeof(expression), stdin);
 		tokens = genTokens(mathLex(expression));
+		free(tokens);
+		tokens = NULL;
 
 		// event handler (put in own function)
 		while (SDL_PollEvent(&sdlshit.event))

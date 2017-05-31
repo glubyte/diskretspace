@@ -83,9 +83,22 @@ token* genTokens(char* expression)
 		}
 		switch (expression[i])
 		{
+			case '(':
+			case ')':
+			{
+				tokens[numTokens].type = TOKEN_TYPE_PARENTHESIS;
+				tokens[numTokens].precedence = 0;
+			}
 			case '+':
 			case '-':
 			{
+
+				if (!isalnum(expression[i - 1]))
+				{
+					tokens[numTokens].type = TOKEN_TYPE_UNARY_OPERATOR;
+					tokens[numTokens].precedence = 6;
+					break;
+				}
 				tokens[numTokens].type = TOKEN_TYPE_BINARY_OPERATOR;
 				tokens[numTokens].precedence = 2;
 				break;
@@ -103,17 +116,17 @@ token* genTokens(char* expression)
 				tokens[numTokens].precedence = 4;
 				break;
 			}
-			case '(':
-			case ')':
-			{
-				tokens[numTokens].type = TOKEN_TYPE_PARENTHESIS;
-				tokens[numTokens].precedence = 5;
-				break;
-			}
 			case '=':
 			{
 				tokens[numTokens].type = TOKEN_TYPE_EQUALITY;
+				tokens[numTokens].precedence = 5;
+				break;
+			}
+			case '!':
+			{
+				tokens[numTokens].type = TOKEN_TYPE_UNARY_OPERATOR;
 				tokens[numTokens].precedence = 6;
+				break;
 			}
 		}
 		tokens[numTokens].data[0] = expression[i];
@@ -122,20 +135,21 @@ token* genTokens(char* expression)
 	}
 	time = clock() - time;
 	printf("%i tokens resolved in %f seconds.\n", numTokens, (float)time / CLOCKS_PER_SEC);
+	
 	for (i = 0; i < numTokens; i++)
 	{
 		printf("%s\n", tokens[i].data);
 	}
+
 	free(expression);
 	expression = NULL;
 	return tokens;
 }
 node* genTree(token* tokens)
 {
-	node* t1 = NULL;
-	node* t2 = NULL;
-	unsigned int nodes = 0;
-	unsigned int leaves = 0;
+	node* root = NULL;
+	node* treeBuffer = NULL;
+	unsigned int nodes = 0, leaves = 0;
 	unsigned char i = 0;
 	clock_t time;
 
@@ -143,40 +157,34 @@ node* genTree(token* tokens)
 	time = clock();
 	while (tokens[i].data)
 	{
+		switch (tokens[i].type)
+		{
+			case TOKEN_TYPE_OPERAND:
+			{
+				treeBuffer = genNode(tokens[i]);
+				treeBuffer->type = NODE_TYPE_LEAF;
+				treeBuffer->left = NULL;
+				treeBuffer->right = NULL;
 
+				if (tokens[i + 1].precedence > tokens[i - 1].precedence)
+				{
+					
+				}
+				break;
+			}
+		}
 	}
 	time = clock() - time;
 
 	printf("Binary expression tree generated in %f seconds with %i leaves and %i nodes.\n", (float)time / CLOCKS_PER_SEC, leaves, nodes);
 	free(tokens);
 	tokens = NULL;
-	// return tree;
+	return root;
 }
 node* genNode(token token)
 {
 	node* newNode = (node*)malloc(sizeof(node));
 	strcpy(newNode->data, token.data);
-
-	switch (token.type)
-	{
-		case TOKEN_TYPE_OPERAND:
-		{
-			newNode->type = NODE_TYPE_LEAF;
-			newNode->left = NULL;
-			newNode->right = NULL;
-			break;
-		}
-		case TOKEN_TYPE_BINARY_OPERATOR:
-		{
-			newNode->type = NODE_TYPE_INTERNAL;
-			break;
-		}
-		case TOKEN_TYPE_UNARY_OPERATOR:
-		{
-			newNode->type = NODE_TYPE_INTERNAL;
-			break;
-		}
-	}
 
 	return newNode;
 }

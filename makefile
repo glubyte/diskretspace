@@ -46,6 +46,7 @@ gen.o : gen.h maths.h
 
 camera.o : camera.h maths.h
 	gcc -c camera.c $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LINKER_FLAGS)
+
 fps.o : fps.h
 	gcc -c fps.c $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LINKER_FLAGS)
 

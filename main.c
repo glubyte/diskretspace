@@ -41,7 +41,7 @@ int main(void)
 
 		printf("Enter an expression:\n");
 		fgets(expression, sizeof(expression), stdin);
-		tokens = genTokens(mathLex(expression));
+		tokens = mathLexicon(mathClean(expression));
 		free(tokens);
 		tokens = NULL;
 
@@ -63,19 +63,6 @@ int main(void)
 				case SDL_WINDOWEVENT_MAXIMIZED:
 					SDL_SetWindowFullscreen(sdlshit.window, SDL_WINDOW_FULLSCREEN);
 					break;
-				}
-				break;
-			case SDL_KEYUP:
-				switch (sdlshit.event.key.keysym.sym)
-				{
-				case SDLK_c:
-				{
-					planet planet;
-					printf("Enter planet name:\n");
-					scanf("%s", planet.name);
-					createPlanet(planet);
-					break;
-				}
 				}
 				break;
 			}

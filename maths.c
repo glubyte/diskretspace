@@ -27,7 +27,7 @@ void normalize(vec3* a)
 	a->k = a->k / l;
 }
 
-char* mathLex(char* expression)
+char* mathClean(char* expression)
 {
 	unsigned int i = 0, j = 0;
 	char* buffer = NULL;
@@ -51,7 +51,7 @@ char* mathLex(char* expression)
 	printf("Interpreted as: %s\n", buffer);
 	return buffer;
 }
-token* genTokens(char* expression)
+token* mathLexicon(char* expression)
 {
 	token* tokens = NULL;
 	uint32_t numTokens = 0;
@@ -71,6 +71,7 @@ token* genTokens(char* expression)
 			tokens[numTokens].data[j] = expression[i];
 			j++;
 			i++;
+
 			while (isdigit(expression[i]))
 			{
 				tokens[numTokens].data[j] = expression[i];
@@ -84,24 +85,33 @@ token* genTokens(char* expression)
 		switch (expression[i])
 		{
 			case '(':
-			case ')':
 			{
-				tokens[numTokens].type = TOKEN_TYPE_PARENTHESIS;
-				tokens[numTokens].precedence = 0;
+				tokens[numTokens].type = TOKEN_TYPE_NEST;
+				tokens[numTokens].precedence = 1;
+				i++;
+
+				while (expression[i] != ')')
+				{
+					tokens[numTokens].data[j] = expression[i];
+					j++;
+					i++;
+				}
+				j = 0;
 				break;
 			}
 			case '+':
 			case '-':
 			{
-
 				if (!isalnum(expression[i - 1]))
 				{
 					tokens[numTokens].type = TOKEN_TYPE_UNARY_OPERATOR;
 					tokens[numTokens].precedence = 6;
+					tokens[numTokens].data[0] = expression[i];
 					break;
 				}
 				tokens[numTokens].type = TOKEN_TYPE_BINARY_OPERATOR;
 				tokens[numTokens].precedence = 2;
+				tokens[numTokens].data[0] = expression[i];
 				break;
 			}
 			case '*':
@@ -109,28 +119,31 @@ token* genTokens(char* expression)
 			{
 				tokens[numTokens].type = TOKEN_TYPE_BINARY_OPERATOR;
 				tokens[numTokens].precedence = 3;
+				tokens[numTokens].data[0] = expression[i];
 				break;
 			}
 			case '^':
 			{
 				tokens[numTokens].type = TOKEN_TYPE_BINARY_OPERATOR;
 				tokens[numTokens].precedence = 4;
+				tokens[numTokens].data[0] = expression[i];
 				break;
 			}
 			case '=':
 			{
 				tokens[numTokens].type = TOKEN_TYPE_EQUALITY;
 				tokens[numTokens].precedence = 5;
+				tokens[numTokens].data[0] = expression[i];
 				break;
 			}
 			case '!':
 			{
 				tokens[numTokens].type = TOKEN_TYPE_UNARY_OPERATOR;
 				tokens[numTokens].precedence = 6;
+				tokens[numTokens].data[0] = expression[i];
 				break;
 			}
 		}
-		tokens[numTokens].data[0] = expression[i];
 		i++;
 		numTokens++;
 	}
@@ -149,7 +162,7 @@ token* genTokens(char* expression)
 node* genTree(token* tokens)
 {
 	node* root = NULL;
-	node* treeBuffer = NULL;
+	node* nodeBuffer = NULL;
 	unsigned int nodes = 0, leaves = 0;
 	unsigned char i = 0;
 	clock_t time;
@@ -162,16 +175,15 @@ node* genTree(token* tokens)
 		{
 			case TOKEN_TYPE_OPERAND:
 			{
-				treeBuffer = genNode(tokens[i]);
-				treeBuffer->type = NODE_TYPE_LEAF;
-				treeBuffer->left = NULL;
-				treeBuffer->right = NULL;
-
-				if (tokens[i + 1].precedence > tokens[i - 1].precedence)
-				{
-					
-				}
+				nodeBuffer = genNode(tokens[i]);
+				nodeBuffer->type = NODE_TYPE_LEAF;
+				nodeBuffer->left = NULL;
+				nodeBuffer->right = NULL;
 				break;
+			}
+			case TOKEN_TYPE_BINARY_OPERATOR:
+			{
+
 			}
 		}
 	}
@@ -185,7 +197,7 @@ node* genTree(token* tokens)
 node* genNode(token token)
 {
 	node* newNode = (node*)malloc(sizeof(node));
-	strcpy(newNode->data, token.data);
+	newNode->token = token;
 
 	return newNode;
 }

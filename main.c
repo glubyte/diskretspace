@@ -14,8 +14,7 @@ int main(void)
 {
 	// stacking
 	unsigned char flag = 1;
-	char* expression = (char*)malloc(512);
-	token* tokens;
+	char* expression = NULL;
 	fps_shit fpsshit;
 	sdl_shit sdlshit;
 	vk_shit vkshit;
@@ -39,11 +38,11 @@ int main(void)
 		// FPS handler
 		// calculateFPS(&fpsshit);
 
-		printf("Enter an expression:\n");
-		fgets(expression, sizeof(expression), stdin);
-		tokens = mathLexicon(expression);
-		free(tokens);
-		tokens = NULL;
+		expression = (char*)malloc(sizeof(char) * 100);
+		printf("Enter an expression, organism:\n");
+		fgets(expression, 100, stdin);
+		fseek(stdin, 0, SEEK_END);
+		mathLexicon(expression);
 
 		// event handler (put in own function)
 		while (SDL_PollEvent(&sdlshit.event))

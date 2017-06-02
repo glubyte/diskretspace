@@ -27,7 +27,7 @@ void normalize(vec3* a)
 	a->k = a->k / l;
 }
 
-token* mathLexicon(char* expression)
+void mathLexicon(char* expression)
 {
 	token* tokens = NULL;
 	uint32_t numTokens = 0;
@@ -37,124 +37,188 @@ token* mathLexicon(char* expression)
 	time = clock();
 	while (expression[i])
 	{
-		tokens = (token*)realloc(tokens, sizeof(token)*(numTokens + 1));
-
-		if (isalnum(expression[i]))
+		if (isgraph(expression[i]))
 		{
-			// prepare for large numbers
-			tokens[numTokens].type = TOKEN_TYPE_OPERAND;
-			tokens[numTokens].precedence = 1;
-			tokens[numTokens].data[j] = expression[i];
-			j++;
-			i++;
+			tokens = (token*)realloc(tokens, sizeof(token) * (numTokens + 1));
 
-			while (isdigit(expression[i]))
+			if (isdigit(expression[i]))
 			{
-				tokens[numTokens].data[j] = expression[i];
-				j++;
-				i++;
-			}
-			tokens[numTokens].data[j] = '\0';
-			numTokens++;
-			j = 0;
-			continue;
-		}
-		switch (expression[i])
-		{
-			case '(':
-			{
-				tokens[numTokens].type = TOKEN_TYPE_NEST;
+				// prepare for number of indefinite size
+				tokens[numTokens].type = TOKEN_TYPE_OPERAND;
+				tokens[numTokens].operandType = OPERAND_TYPE_INTEGER;
 				tokens[numTokens].precedence = 1;
-				int p = 1;
+				tokens[numTokens].data = NULL;
 
-				// deal with nested parenthesis
-				while (p)
+				while (isdigit(expression[i]))
 				{
+					tokens[numTokens].data = (char*)realloc(tokens[numTokens].data, sizeof(char) * (j + 2));
+					tokens[numTokens].data[j] = expression[i];
 					i++;
 					j++;
-					switch (expression[i])
-					{
-						case '(':
-						{
-							p++;
-							break;
-						}
-						case ')':
-						{
-							p--;
-							break;
-						}
-					}
-					tokens[numTokens].data[j] = expression[i];
 				}
 				tokens[numTokens].data[j] = '\0';
+
 				j = 0;
-				break;
+				numTokens++;
+				continue;
 			}
-			case '+':
-			case '-':
+			if (isalpha(expression[i]))
 			{
-				if (!isalnum(expression[i - 1]))
+				// check for specific strings which can be operators and long variable names
+				// variables with names longer than one character should be enclosed within parenthesis
+
+				// for now, default to single variables
+				tokens[numTokens].type = TOKEN_TYPE_OPERAND;
+				tokens[numTokens].operandType = OPERAND_TYPE_VARIABLE;
+				tokens[numTokens].precedence = 1;
+				tokens[numTokens].data = (char*)malloc(sizeof(char) * 2);
+				tokens[numTokens].data[0] = expression[i];
+				tokens[numTokens].data[1] = '\0';
+
+				i++;
+				numTokens++;
+				continue;
+			}
+			switch (expression[i])
+			{
+				case '=':
 				{
-					tokens[numTokens].type = TOKEN_TYPE_UNARY_OPERATOR;
-					tokens[numTokens].precedence = 6;
-					tokens[numTokens].data[0] = expression[i];
+					tokens[numTokens].type = TOKEN_TYPE_EQUALITY;
+					tokens[numTokens].precedence = 0;
+					tokens[numTokens].data = NULL;
+
+					numTokens++;
 					break;
 				}
-				tokens[numTokens].type = TOKEN_TYPE_BINARY_OPERATOR;
-				tokens[numTokens].precedence = 2;
-				tokens[numTokens].data[0] = expression[i];
-				break;
-			}
-			case '*':
-			case '/':
-			{
-				tokens[numTokens].type = TOKEN_TYPE_BINARY_OPERATOR;
-				tokens[numTokens].precedence = 3;
-				tokens[numTokens].data[0] = expression[i];
-				break;
-			}
-			case '^':
-			{
-				tokens[numTokens].type = TOKEN_TYPE_BINARY_OPERATOR;
-				tokens[numTokens].precedence = 4;
-				tokens[numTokens].data[0] = expression[i];
-				break;
-			}
-			case '=':
-			{
-				tokens[numTokens].type = TOKEN_TYPE_EQUALITY;
-				tokens[numTokens].precedence = 5;
-				tokens[numTokens].data[0] = expression[i];
-				break;
-			}
-			case '!':
-			{
-				tokens[numTokens].type = TOKEN_TYPE_UNARY_OPERATOR;
-				tokens[numTokens].precedence = 6;
-				tokens[numTokens].data[0] = expression[i];
-				break;
-			}
-			default:
-			{
-				i++;
-				continue;
+				case '(':
+				{
+					tokens[numTokens].type = TOKEN_TYPE_OPERAND;
+					tokens[numTokens].operandType = OPERAND_TYPE_NEST;
+					tokens[numTokens].precedence = 1;
+					int p = 1;
+
+					// deal with nested parenthesis
+					while (p)
+					{
+						i++;
+						j++;
+						switch (expression[i])
+						{
+							case '(':
+							{
+								p++;
+								break;
+							}
+							case ')':
+							{
+								p--;
+								break;
+							}
+						}
+					}
+					tokens[numTokens].data = (char*)malloc(sizeof(char) * j);
+					strncpy(tokens[numTokens].data, &expression[i - j + 1], sizeof(char) * (j - 1));
+					tokens[numTokens].data[j] = '\0';
+
+					j = 0;
+					numTokens++;
+					break;
+				}
+				case '+':
+				{
+					tokens[numTokens].type = TOKEN_TYPE_BINARY_OPERATOR;
+					tokens[numTokens].operatorType = OPERATOR_TYPE_ADD;
+					tokens[numTokens].precedence = 2;
+					tokens[numTokens].data = NULL;
+
+					numTokens++;
+					break;
+				}
+				case '-':
+				{
+					tokens[numTokens].type = TOKEN_TYPE_UNARY_OPERATOR;
+					tokens[numTokens].operatorType = OPERATOR_TYPE_MINUS;
+					tokens[numTokens].precedence = 1;
+					tokens[numTokens].data = NULL;
+
+					numTokens++;
+					break;
+				}
+				case '*':
+				{
+					tokens[numTokens].type = TOKEN_TYPE_BINARY_OPERATOR;
+					tokens[numTokens].operatorType = OPERATOR_TYPE_MULTIPLY;
+					tokens[numTokens].precedence = 3;
+					tokens[numTokens].data = NULL;
+
+					numTokens++;
+					break;
+				}
+				case '/':
+				{
+					tokens[numTokens].type = TOKEN_TYPE_BINARY_OPERATOR;
+					tokens[numTokens].operatorType = OPERATOR_TYPE_DIVIDE;
+					tokens[numTokens].precedence = 3;
+					tokens[numTokens].data = NULL;
+
+					numTokens++;
+					break;
+				}
+				case '^':
+				{
+					tokens[numTokens].type = TOKEN_TYPE_BINARY_OPERATOR;
+					tokens[numTokens].operatorType = OPERATOR_TYPE_EXP;
+					tokens[numTokens].precedence = 4;
+					tokens[numTokens].data = NULL;
+
+					numTokens++;
+					break;
+				}
+				case '!':
+				{
+					tokens[numTokens].type = TOKEN_TYPE_UNARY_OPERATOR;
+					tokens[numTokens].operatorType = OPERATOR_TYPE_FACTORIAL;
+					tokens[numTokens].precedence = 1;
+					tokens[numTokens].data = NULL;
+
+					numTokens++;
+					break;
+				}
 			}
 		}
 		i++;
-		numTokens++;
 	}
 	time = clock() - time;
-	printf("%i tokens resolved in %f seconds over %i iterations.\n", numTokens, (float)time / CLOCKS_PER_SEC, i - 1);
+	printf("%i tokens resolved in %f seconds over %i iterations:\n", numTokens, (float)time / CLOCKS_PER_SEC, i - 1);
 	
+	free(expression);
+	expression = NULL;
+
 	for (i = 0; i < numTokens; i++)
 	{
+		if (tokens[i].data == NULL)
+		{
+			printf("Token of type %i.\n", tokens[i].type);
+		}
 		printf("%s\n", tokens[i].data);
 	}
 
-	free(expression);
-	expression = NULL;
-	return tokens;
+	printf("Freeing tokens...\n");
+	for (i = 0; i < numTokens; i++)
+	{
+		freeToken(tokens[i]);
+	}
+	free(tokens);
+	tokens = NULL;
+
+	// return tokens;
+}
+node* genNode(token token)
+{
+	node* newNode = (node*)malloc(sizeof(node));
+	// newNode.token = token;
+
+	return newNode;
 }
 node* genTree(token* tokens)
 {
@@ -184,11 +248,13 @@ node* genTree(token* tokens)
 				}
 
 			}
+			/*
 			case TOKEN_TYPE_NEST:
 			{
 				// insert this in same manner as operand
 				genTree(mathLexicon(tokens[i].data));
 			}
+			*/
 			case TOKEN_TYPE_BINARY_OPERATOR:
 			{
 
@@ -206,18 +272,21 @@ node* genTree(token* tokens)
 	time = clock() - time;
 
 	printf("Binary expression tree generated in %f seconds with %i leaves and %i nodes.\n", (float)time / CLOCKS_PER_SEC, leaves, nodes);
-	free(tokens);
-	tokens = NULL;
+
 	return root;
 }
-node* genNode(token token)
+void freeToken(token token)
 {
-	node* newNode = (node*)malloc(sizeof(node));
-	newNode->token = token;
-
-	return newNode;
+	free(token.data);
+	token.data = NULL;
 }
-void deleteNode(node* node)
+void freeNode(node* node)
+{
+	freeToken(node->token);
+
+	free(node);
+}
+void freeTree(node* root)
 {
 
 }

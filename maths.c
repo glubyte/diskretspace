@@ -199,6 +199,7 @@ void mathLexicon(char* expression)
 		if (tokens[i].data == NULL)
 		{
 			printf("Token of type %i.\n", tokens[i].type);
+			continue;
 		}
 		printf("%s\n", tokens[i].data);
 	}
@@ -216,51 +217,28 @@ void mathLexicon(char* expression)
 node* genNode(token token)
 {
 	node* newNode = (node*)malloc(sizeof(node));
-	// newNode.token = token;
+	newNode->token = token;
 
 	return newNode;
 }
-node* genTree(token* tokens)
+node* genTree(token* tokens, unsigned int numTokens)
 {
 	node* root = NULL;
 	node* buffer = NULL;
 	unsigned int nodes = 0, leaves = 0;
-	unsigned char i = 0;
+	unsigned int i = 0;
 	clock_t time;
 
 	// pretty much a cellular automata
 	time = clock();
-	while (tokens[i].data)
+	while (i < numTokens)
 	{
-		switch (tokens[i].type)
+		switch (tokens[i].operatorType)
 		{
-			case TOKEN_TYPE_OPERAND:
+			case OPERATOR_TYPE_ADD:
 			{
-				node* buffer = genNode(tokens[i]);
-				buffer->type = NODE_TYPE_LEAF;
-				buffer->left = NULL;
-				buffer->right = NULL;
+				buffer = genNode(tokens[i]);
 
-				if (root == NULL)
-				{
-					root = buffer;
-					break;
-				}
-
-			}
-			/*
-			case TOKEN_TYPE_NEST:
-			{
-				// insert this in same manner as operand
-				genTree(mathLexicon(tokens[i].data));
-			}
-			*/
-			case TOKEN_TYPE_BINARY_OPERATOR:
-			{
-
-			}
-			case TOKEN_TYPE_UNARY_OPERATOR:
-			{
 
 			}
 			case TOKEN_TYPE_EQUALITY:
@@ -271,7 +249,7 @@ node* genTree(token* tokens)
 	}
 	time = clock() - time;
 
-	printf("Binary expression tree generated in %f seconds with %i leaves and %i nodes.\n", (float)time / CLOCKS_PER_SEC, leaves, nodes);
+	printf("Expression tree generated in %f seconds with %i leaves and %i nodes.\n", (float)time / CLOCKS_PER_SEC, leaves, nodes);
 
 	return root;
 }

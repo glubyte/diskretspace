@@ -12,43 +12,43 @@
 
 // stack handles
 typedef enum {
-	TOKEN_TYPE_OPERAND = 0,
-	TOKEN_TYPE_BINARY_OPERATOR = 1,
-	TOKEN_TYPE_UNARY_OPERATOR = 2,
-	TOKEN_TYPE_EQUALITY = 3,
+	TOKEN_TYPE_OPERAND,
+	TOKEN_TYPE_BINARY_OPERATOR,
+	TOKEN_TYPE_UNARY_OPERATOR,
+	TOKEN_TYPE_EQUALITY
 } tokenType;
 
 typedef enum {
-	OPERATOR_TYPE_ADD = 0,
-	OPERATOR_TYPE_MINUS = 1,
-	OPERATOR_TYPE_MULTIPLY = 2,
-	OPERATOR_TYPE_DIVIDE = 3,
-	OPERATOR_TYPE_EXP = 4,
-	OPERATOR_TYPE_SQRT = 5,
-	OPERATOR_TYPE_SIN = 6,
-	OPERATOR_TYPE_COS = 7,
-	OPERATOR_TYPE_TAN = 8,
-	OPERATOR_TYPE_DOT = 9,
-	OPERATOR_TYPE_CROSS = 10,
-	OPERATOR_TYPE_INTEGRAL = 11,
-	OPERATOR_TYPE_DERIVATIVE = 12,
-	OPERATOR_TYPE_FACTORIAL = 13,
-	OPERATOR_TYPE_SUM = 14
+	OPERATOR_TYPE_ADD,
+	OPERATOR_TYPE_MINUS,
+	OPERATOR_TYPE_MULTIPLY,
+	OPERATOR_TYPE_DIVIDE,
+	OPERATOR_TYPE_EXP,
+	OPERATOR_TYPE_SQRT,
+	OPERATOR_TYPE_SIN,
+	OPERATOR_TYPE_COS,
+	OPERATOR_TYPE_TAN,
+	OPERATOR_TYPE_DOT,
+	OPERATOR_TYPE_CROSS,
+	OPERATOR_TYPE_INTEGRAL,
+	OPERATOR_TYPE_DERIVATIVE,
+	OPERATOR_TYPE_FACTORIAL,
+	OPERATOR_TYPE_SUM
 } operatorType;
 
 typedef enum {
-	OPERAND_TYPE_INTEGER = 0,
-	OPERAND_TYPE_VARIABLE = 1,
-	OPERAND_TYPE_VECTOR = 2,
-	OPERAND_TYPE_MATRIX = 3,
-	OPERAND_TYPE_COMPLEX = 4,
-	OPERAND_TYPE_NEST = 5
+	OPERAND_TYPE_INTEGER,
+	OPERAND_TYPE_VARIABLE,
+	OPERAND_TYPE_VECTOR,
+	OPERAND_TYPE_MATRIX,
+	OPERAND_TYPE_COMPLEX,
+	OPERAND_TYPE_NEST
 } operandType;
 
 typedef enum {
-	NODE_TYPE_LEAF = 0,
-	NODE_TYPE_INTERNAL = 1,
-	NODE_TYPE_ROOT = 2
+	NODE_TYPE_LEAF,
+	NODE_TYPE_INTERNAL,
+	NODE_TYPE_ROOT
 } nodeType;
 
 typedef struct {
@@ -62,8 +62,8 @@ typedef struct {
 typedef struct tree {
 	nodeType type;
 	token token;
-	struct tree* left;
-	struct tree* right;
+	unsigned int branches;
+	struct tree** branch;
 } node;
 
 typedef struct {
@@ -81,7 +81,7 @@ void normalize(vec3* a);
 // symbolic computation
 void mathLexicon(char* expression); // will return the tokens, but currently debugging
 node* genNode(token token);
-node* genTree(token* tokens);
+node* genTree(token* tokens, unsigned int numTokens);
 void freeToken(token token);
 void freeNode(node* node);
 void freeTree(node* root);
